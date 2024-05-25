@@ -10,12 +10,14 @@ class GridWorld:
         columns: int,
         policy: typing.Optional[str] = "equiprobable",
         max_iterations: typing.Optional[int] = 10000,
+        delta: typing.Optional[float] = 0.001,
     ) -> None:
         self.max_row = rows - 1
         self.max_column = columns - 1
         self.values = np.zeros((rows, columns))
         self.terminal_states = [(0, 0), (self.max_row, self.max_column)]
         self.iterations = 0
+        self.delta = (delta,)
         self.max_iterations = max_iterations
         self.valid_actions = ["up", "right", "down", "left"]
         self.policy = policy
@@ -37,17 +39,28 @@ class GridWorld:
             state_value += self.get_state_action_value(next_state)
         return state_value
 
+    def take_actions(self) -> np.array:
+        next_values = np.zeros((self.max_row + 1, self.max_column + 1))
+        for row in range(self.max_row + 1):
+            for col in range(self.max_column + 1):
+                if (row, col) in self.terminal_states:
+                    continue
+                if self.policy == "equiprobable":
+                    next_values[
+                        (row, col)
+                    ] = self.take_equiprobable_actions_for_a_state(row, col)
+                else:
+                    raise NotImplementedError(f"{self.policy} not implemented")
+        return next_values
+
     def iterate_states(self) -> None:
-        for _ in range(self.max_iterations):
-            next_values = np.zeros((self.max_row + 1, self.max_column + 1))
-            for row in range(self.max_row + 1):
-                for col in range(self.max_column + 1):
-                    if (row, col) in self.terminal_states:
-                        continue
-                    if self.policy == "equiprobable":
-                        next_values[
-                            (row, col)
-                        ] = self.take_equiprobable_actions_for_a_state(row, col)
-                    else:
-                        raise NotImplementedError(f"{self.policy} not implemented")
+        for i in range(self.max_iterations):
+            next_values = self.take_actions()
+            diffs = next_values - self.values
             self.values = next_values
+            if np.abs(diffs).max() < self.delta:
+                print(
+                    f"Not expecting further improvement, stopping after {i} iterations"
+                )
+                break
+        self.values = np.round(self.values, 2)
