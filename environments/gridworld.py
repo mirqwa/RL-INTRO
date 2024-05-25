@@ -10,14 +10,14 @@ class GridWorld:
         columns: int,
         policy: typing.Optional[str] = "equiprobable",
         max_iterations: typing.Optional[int] = 10000,
-        delta: typing.Optional[float] = 0.001,
+        theta: typing.Optional[float] = 0.001,
     ) -> None:
         self.max_row = rows - 1
         self.max_column = columns - 1
         self.values = np.zeros((rows, columns))
         self.terminal_states = [(0, 0), (self.max_row, self.max_column)]
         self.iterations = 0
-        self.delta = (delta,)
+        self.theta = theta
         self.max_iterations = max_iterations
         self.valid_actions = ["up", "right", "down", "left"]
         self.policy = policy
@@ -57,10 +57,11 @@ class GridWorld:
         for i in range(self.max_iterations):
             next_values = self.take_actions()
             diffs = next_values - self.values
+            delta = np.abs(diffs).max()
             self.values = next_values
-            if np.abs(diffs).max() < self.delta:
+            if delta < self.theta:
                 print(
-                    f"Not expecting further improvement, stopping after {i} iterations"
+                    f"Not expecting further improvement, stopping after {i + 1} iterations"
                 )
                 break
         self.values = np.round(self.values, 2)
