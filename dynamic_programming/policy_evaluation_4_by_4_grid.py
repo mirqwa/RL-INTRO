@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(current_directory))
 from environments import gridworld
 
 
-def evaluate_equiprobable_policy():
+def evaluate_equiprobable_policy() -> None:
     env = gridworld.GridWorld(4, 4, values_init_strategy="zeros")
     theta = 0.001
     num_of_iterations = 0
