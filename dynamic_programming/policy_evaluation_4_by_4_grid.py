@@ -22,7 +22,7 @@ def evaluate_equiprobable_policy() -> None:
         if delta < theta:
             break
     print(f"Policy evvaluation completed after {num_of_iterations} steps")
-    print(env.values)
+    print(np.round(env.values, 2))
 
 
 if __name__ == "__main__":
