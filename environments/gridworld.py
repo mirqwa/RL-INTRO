@@ -11,16 +11,24 @@ class GridWorld:
         policy: typing.Optional[str] = "equiprobable",
         max_iterations: typing.Optional[int] = 10000,
         theta: typing.Optional[float] = 0.001,
+        values_init_strategy: typing.Optional[str] = "zeros",
     ) -> None:
         self.max_row = rows - 1
         self.max_column = columns - 1
-        self.values = np.zeros((rows, columns))
+        self.values = self.initialize_values(values_init_strategy)
         self.terminal_states = [(0, 0), (self.max_row, self.max_column)]
         self.iterations = 0
         self.theta = theta
         self.max_iterations = max_iterations
         self.valid_actions = ["up", "right", "down", "left"]
         self.policy = policy
+
+    def initialize_values(self, values_init_strategy: str) -> None:
+        if values_init_strategy == "zeros":
+            return np.zeros((self.max_row + 1, self.max_column + 1))
+        raise NotImplementedError(
+            f"Initialization values initialization strategy for {values_init_strategy} is not implemented"
+        )
 
     def get_state_action_value(self, next_state: typing.Tuple[int]) -> float:
         return 0.25 * (-1 + self.values[next_state])
