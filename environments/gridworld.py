@@ -9,6 +9,7 @@ class GridWorld:
         rows: int,
         columns: int,
         policy: dict,
+        random_policy: typing.Optional[bool] = False,
         max_iterations: typing.Optional[int] = 10000,
         theta: typing.Optional[float] = 0.001,
         values_init_strategy: typing.Optional[str] = "zeros",
@@ -22,6 +23,7 @@ class GridWorld:
         self.max_iterations = max_iterations
         self.valid_actions = ["up", "right", "down", "left"]
         self.policy = policy
+        self.random_policy = random_policy
 
     def initialize_values(self, values_init_strategy: str) -> None:
         if values_init_strategy == "zeros":
@@ -35,9 +37,21 @@ class GridWorld:
     ) -> float:
         return action_probability * (-1 + self.values[next_state])
 
+    def get_random_action(self, state: typing.Tuple[int]) -> str:
+        action_probs = self.policy[state]
+        action = np.random.choice(
+            list(action_probs.keys()), 1, p=list(action_probs.values())
+        )
+        return [(action, 1)]
+
     def take_actions_for_a_state(self, row: int, column: int) -> float:
         state_value = 0
-        for action, action_probability in self.policy[(row, column)].items():
+        action_probs = (
+            self.get_random_action((row, column))
+            if self.random_policy
+            else self.policy[(row, column)].items()
+        )
+        for action, action_probability in action_probs:
             if action not in self.valid_actions:
                 raise ValueError(
                     f"Invalid action: {action} not allowed in ({row}, {column})"
