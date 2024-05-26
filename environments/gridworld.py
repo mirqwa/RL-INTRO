@@ -47,16 +47,17 @@ class GridWorld:
             state_value += self.get_state_action_value(next_state)
         return state_value
 
-    def take_actions(self) -> np.array:
+    def take_actions(self, inplace_update: typing.Optional[bool] = False) -> np.array:
         next_values = np.zeros((self.max_row + 1, self.max_column + 1))
         for row in range(self.max_row + 1):
             for col in range(self.max_column + 1):
                 if (row, col) in self.terminal_states:
                     continue
                 if self.policy == "equiprobable":
-                    next_values[
-                        (row, col)
-                    ] = self.take_equiprobable_actions_for_a_state(row, col)
+                    state_value = self.take_equiprobable_actions_for_a_state(row, col)
+                    next_values[(row, col)] = state_value
+                    if inplace_update:
+                        self.values[(row, col)] = state_value
                 else:
                     raise NotImplementedError(f"{self.policy} not implemented")
         return next_values
