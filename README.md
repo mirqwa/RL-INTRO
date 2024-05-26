@@ -32,3 +32,5 @@ The table below shows optimal state values after infinite iterations
 |**2**|-14 |-18 |-20 |-20|
 |**3**|-20 |-20 |-18 |-14|
 |**4**|-22 |-20 |-14 |0  |
+
+With `θ = 0.001`, the state values are optimum after 173 steps. The results are even better with inplace value update, optimals state values were found after only 114 steps.
