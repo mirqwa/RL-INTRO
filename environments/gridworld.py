@@ -8,7 +8,7 @@ class GridWorld:
         self,
         rows: int,
         columns: int,
-        policy: typing.Optional[str] = "equiprobable",
+        policy: dict,
         max_iterations: typing.Optional[int] = 10000,
         theta: typing.Optional[float] = 0.001,
         values_init_strategy: typing.Optional[str] = "zeros",
@@ -30,12 +30,18 @@ class GridWorld:
             f"Initialization values initialization strategy for {values_init_strategy} is not implemented"
         )
 
-    def get_state_action_value(self, next_state: typing.Tuple[int]) -> float:
-        return 0.25 * (-1 + self.values[next_state])
+    def get_state_action_value(
+        self, action_probability: float, next_state: typing.Tuple[int]
+    ) -> float:
+        return action_probability * (-1 + self.values[next_state])
 
-    def take_equiprobable_actions_for_a_state(self, row: int, column: int) -> float:
+    def take_actions_for_a_state(self, row: int, column: int) -> float:
         state_value = 0
-        for action in self.valid_actions:
+        for action, action_probability in self.policy[(row, column)].items():
+            if action not in self.valid_actions:
+                raise ValueError(
+                    f"Invalid action: {action} not allowed in ({row}, {column})"
+                )
             if action == "up":
                 next_state = (max(row - 1, 0), column)
             elif action == "right":
@@ -44,7 +50,7 @@ class GridWorld:
                 next_state = (min(row + 1, self.max_row), column)
             else:
                 next_state = (row, max(column - 1, 0))
-            state_value += self.get_state_action_value(next_state)
+            state_value += self.get_state_action_value(action_probability, next_state)
         return state_value
 
     def take_actions(self, inplace_update: typing.Optional[bool] = False) -> np.array:
@@ -53,13 +59,10 @@ class GridWorld:
             for col in range(self.max_column + 1):
                 if (row, col) in self.terminal_states:
                     continue
-                if self.policy == "equiprobable":
-                    state_value = self.take_equiprobable_actions_for_a_state(row, col)
-                    next_values[(row, col)] = state_value
-                    if inplace_update:
-                        self.values[(row, col)] = state_value
-                else:
-                    raise NotImplementedError(f"{self.policy} not implemented")
+                state_value = self.take_actions_for_a_state(row, col)
+                next_values[(row, col)] = state_value
+                if inplace_update:
+                    self.values[(row, col)] = state_value
         return next_values
 
     def iterate_states(self) -> None:
