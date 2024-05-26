@@ -44,6 +44,23 @@ class GridWorld:
         )
         return [(action, 1)]
 
+    def get_action_value(
+        self, row: int, column: int, action: str, action_probability: float
+    ) -> float:
+        if action not in self.valid_actions:
+            raise ValueError(
+                f"Invalid action: {action} not allowed in ({row}, {column})"
+            )
+        if action == "up":
+            next_state = (max(row - 1, 0), column)
+        elif action == "right":
+            next_state = (row, min(column + 1, self.max_column))
+        elif action == "down":
+            next_state = (min(row + 1, self.max_row), column)
+        else:
+            next_state = (row, max(column - 1, 0))
+        return self.get_state_action_value(action_probability, next_state)
+
     def take_actions_for_a_state(self, row: int, column: int) -> float:
         state_value = 0
         action_probs = (
@@ -52,19 +69,9 @@ class GridWorld:
             else self.policy[(row, column)].items()
         )
         for action, action_probability in action_probs:
-            if action not in self.valid_actions:
-                raise ValueError(
-                    f"Invalid action: {action} not allowed in ({row}, {column})"
-                )
-            if action == "up":
-                next_state = (max(row - 1, 0), column)
-            elif action == "right":
-                next_state = (row, min(column + 1, self.max_column))
-            elif action == "down":
-                next_state = (min(row + 1, self.max_row), column)
-            else:
-                next_state = (row, max(column - 1, 0))
-            state_value += self.get_state_action_value(action_probability, next_state)
+            state_value += self.get_action_value(
+                row, column, action, action_probability
+            )
         return state_value
 
     def take_actions(self, inplace_update: typing.Optional[bool] = False) -> np.array:
