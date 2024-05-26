@@ -74,6 +74,19 @@ class GridWorld:
             )
         return state_value
 
+    def update_policy(self) -> None:
+        for row in range(self.max_row + 1):
+            for col in range(self.max_column + 1):
+                if (row, col) in self.terminal_states:
+                    continue
+                state_action_values = {
+                    action: self.get_action_value(row, col, action, 1)
+                    for action in self.policy[(row, col)].keys()
+                }
+                greedy_action = max(state_action_values, key=state_action_values.get)
+                for action in self.policy[(row, col)].keys():
+                    self.policy[(row, col)][action] = 1 if action == greedy_action else 0
+
     def take_actions(self, inplace_update: typing.Optional[bool] = False) -> np.array:
         next_values = np.zeros((self.max_row + 1, self.max_column + 1))
         for row in range(self.max_row + 1):
