@@ -6,29 +6,13 @@ import numpy as np
 current_directory = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.dirname(current_directory))
 
+import constants
 from environments import gridworld
-
-equiprobable_policypolicy = {
-    (0, 1): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (0, 2): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (0, 3): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (1, 0): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (1, 1): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (1, 2): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (1, 3): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (2, 0): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (2, 1): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (2, 2): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (2, 3): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (3, 0): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (3, 1): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-    (3, 2): {"up": 0.25, "right": 0.25, "down": 0.25, "left": 0.25},
-}
 
 
 def evaluate_equiprobable_policy() -> None:
     env = gridworld.GridWorld(
-        4, 4, equiprobable_policypolicy, values_init_strategy="zeros"
+        4, 4, constants.EQUIPROBABLE_POLICY, values_init_strategy="zeros"
     )
     theta = 0.0001
     num_of_iterations = 0
@@ -46,7 +30,7 @@ def evaluate_equiprobable_policy() -> None:
 
 def evaluate_equiprobable_policy_with_inplace_update() -> None:
     env = gridworld.GridWorld(
-        4, 4, equiprobable_policypolicy, values_init_strategy="zeros"
+        4, 4, constants.EQUIPROBABLE_POLICY, values_init_strategy="zeros"
     )
     theta = 0.0001
     num_of_iterations = 0
