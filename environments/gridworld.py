@@ -9,7 +9,6 @@ class GridWorld:
         rows: int,
         columns: int,
         policy: dict,
-        random_policy: typing.Optional[bool] = False,
         max_iterations: typing.Optional[int] = 10000,
         theta: typing.Optional[float] = 0.001,
         values_init_strategy: typing.Optional[str] = "zeros",
@@ -23,7 +22,6 @@ class GridWorld:
         self.max_iterations = max_iterations
         self.valid_actions = ["up", "right", "down", "left"]
         self.policy = policy
-        self.random_policy = random_policy
 
     def initialize_values(self, values_init_strategy: str) -> None:
         if values_init_strategy == "zeros":
@@ -36,13 +34,6 @@ class GridWorld:
         self, action_probability: float, next_state: typing.Tuple[int]
     ) -> float:
         return action_probability * (-1 + self.values[next_state])
-
-    def get_random_action(self, state: typing.Tuple[int]) -> str:
-        action_probs = self.policy[state]
-        action = np.random.choice(
-            list(action_probs.keys()), 1, p=list(action_probs.values())
-        )
-        return [(action, 1)]
 
     def get_action_value(
         self, row: int, column: int, action: str, action_probability: float
@@ -63,12 +54,7 @@ class GridWorld:
 
     def take_actions_for_a_state(self, row: int, column: int) -> float:
         state_value = 0
-        action_probs = (
-            self.get_random_action((row, column))
-            if self.random_policy
-            else self.policy[(row, column)].items()
-        )
-        for action, action_probability in action_probs:
+        for action, action_probability in self.policy[(row, column)].items():
             state_value += self.get_action_value(
                 row, column, action, action_probability
             )
@@ -84,8 +70,15 @@ class GridWorld:
                     for action in self.policy[(row, col)].keys()
                 }
                 greedy_action = max(state_action_values, key=state_action_values.get)
+                greedy_actions = [
+                    action
+                    for action, action_value in state_action_values.items()
+                    if action_value == state_action_values[greedy_action]
+                ]
                 for action in self.policy[(row, col)].keys():
-                    self.policy[(row, col)][action] = 1 if action == greedy_action else 0
+                    self.policy[(row, col)][action] = (
+                        1 / len(greedy_actions) if action in greedy_actions else 0
+                    )
         self.random_policy = False
 
     def take_actions(self, inplace_update: typing.Optional[bool] = False) -> np.array:

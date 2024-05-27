@@ -38,13 +38,16 @@ def iterate_equiprobable_policy() -> None:
         4,
         4,
         constants.EQUIPROBABLE_POLICY,
-        # random_policy=True,
         values_init_strategy="zeros",
     )
+    policy_iterations = 0
     while True:
+        policy_iterations += 1
+        print(f"Policy iteration {policy_iterations}")
         evaluate_policy(env)
         if improve_policy(env):
             break
+    print(f"Policy iteration finished after {policy_iterations} steps")
 
 
 if __name__ == "__main__":
