@@ -24,8 +24,8 @@ def value_iteration() -> None:
         delta = np.abs(diffs).max()
         if delta < theta:
             break
+    env.update_policy()
     print(f"Value iteration completed after {num_of_iterations} steps")
-    print(np.round(env.values, 2))
 
 
 if __name__ == "__main__":
