@@ -9,6 +9,7 @@ sys.path.append(os.path.dirname(current_directory))
 
 import constants
 from environments import gridworld
+import utils
 
 
 def evaluate_policy(env: gridworld.GridWorld) -> None:
@@ -40,6 +41,7 @@ def iterate_equiprobable_policy() -> None:
         constants.EQUIPROBABLE_POLICY,
         values_init_strategy="zeros",
     )
+    utils.plot_policy(env, "The initial policy")
     policy_iterations = 0
     while True:
         policy_iterations += 1
@@ -48,7 +50,7 @@ def iterate_equiprobable_policy() -> None:
         if improve_policy(env):
             break
     print(f"Policy iteration finished after {policy_iterations} steps")
-
+    utils.plot_policy(env, "The optimum policy")
 
 if __name__ == "__main__":
     iterate_equiprobable_policy()

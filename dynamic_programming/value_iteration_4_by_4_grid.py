@@ -8,12 +8,14 @@ sys.path.append(os.path.dirname(current_directory))
 
 import constants
 from environments import gridworld
+import utils
 
 
 def value_iteration() -> None:
     env = gridworld.GridWorld(
         4, 4, constants.EQUIPROBABLE_POLICY, values_init_strategy="zeros"
     )
+    utils.plot_policy(env, "The initial policy")
     theta = 0.0001
     num_of_iterations = 0
     while True:
@@ -26,6 +28,7 @@ def value_iteration() -> None:
             break
     env.update_policy()
     print(f"Value iteration completed after {num_of_iterations} steps")
+    utils.plot_policy(env, "The optimum policy")
 
 
 if __name__ == "__main__":
