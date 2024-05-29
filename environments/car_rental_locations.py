@@ -56,13 +56,36 @@ class CarRentalLocations:
             location_1_state_value + location_2_state_value
         )
 
+    def get_state_action_value(
+        self, state: tuple, moved_cars: int, probability: float
+    ) -> float:
+        next_state = (state[0] - moved_cars, state[1] + moved_cars)
+        return probability * (
+            abs(moved_cars) * -2 + self.discounting_factor * self.values[next_state]
+        )
+
     def evaluate_policy(self) -> None:
         for state, probs in self.policy.items():
             cost_of_moving_cars = 0
             for moved_cars, prob in probs.items():
-                next_state = (state[0] - moved_cars, state[1] + moved_cars)
-                cost_of_moving_cars += prob * (
-                    abs(moved_cars) * -2
-                    + self.discounting_factor * self.values[next_state]
+                cost_of_moving_cars += self.get_state_action_value(
+                    state, moved_cars, prob
                 )
             self.values[state] += cost_of_moving_cars
+
+    def update_policy(self) -> None:
+        for state in self.policy.keys():
+            state_action_values = {
+                moved_cars: self.get_state_action_value(state, moved_cars, 1)
+                for moved_cars in self.policy[state].keys()
+            }
+            greedy_action = max(state_action_values, key=state_action_values.get)
+            greedy_actions = [
+                action
+                for action, action_value in state_action_values.items()
+                if action_value == state_action_values[greedy_action]
+            ]
+            for action in self.policy[state].keys():
+                self.policy[state][action] = (
+                    1 / len(greedy_actions) if action in greedy_actions else 0
+                )
