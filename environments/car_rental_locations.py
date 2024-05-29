@@ -35,11 +35,8 @@ class CarRentalLocation:
         self.number_of_cars += returned_cars
 
 
-def initialize_car_locations() -> None:
-    location = CarRentalLocation(3, 3)
-    location.request_cars()
-    location.return_cars()
-
-
-if __name__ == "__main__":
-    initialize_car_locations()
+class CarRentalLocations():
+    def __init__(self, policy: dict) -> None:
+        self.location_1 = CarRentalLocation(3, 3)
+        self.location_2 = CarRentalLocation(4, 2)
+        self.policy = policy
