@@ -25,3 +25,5 @@ def get_initial_policy():
 if __name__ == "__main__":
     policy = get_initial_policy()
     car_locations = car_rental_locations.CarRentalLocations(policy)
+    car_locations.rent_cars()
+    car_locations.evaluate_policy()
