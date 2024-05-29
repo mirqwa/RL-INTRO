@@ -1,5 +1,8 @@
+import copy
 import os
 import sys
+
+import numpy as np
 
 current_directory = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.dirname(current_directory))
@@ -22,6 +25,32 @@ def get_initial_policy():
     return policy
 
 
-if __name__ == "__main__":
+def evaluate_policy(env: car_rental_locations.CarRentalLocations) -> None:
+    num_of_iterations = 1
+    theta = 0.1
+    while True:
+        current_avg_values = copy.deepcopy(env.values) / num_of_iterations
+        num_of_iterations += 1
+        env.rent_cars()
+        env.move_cars()
+        diffs = env.values / num_of_iterations - current_avg_values
+        delta = np.abs(diffs).max()
+        if delta < theta:
+            break
+    print(
+        f"Policy evaluation with in-place update completed after {num_of_iterations} steps"
+    )
+
+
+def iterate_policy() -> None:
     policy = get_initial_policy()
-    car_locations = car_rental_locations.CarRentalLocations(policy)
+    env = car_rental_locations.CarRentalLocations(policy)
+    while True:
+        evaluate_policy(env)
+        break
+    
+
+
+
+if __name__ == "__main__":
+    iterate_policy()

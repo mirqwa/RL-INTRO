@@ -64,7 +64,7 @@ class CarRentalLocations:
             abs(moved_cars) * -2 + self.discounting_factor * self.values[next_state]
         )
 
-    def evaluate_policy(self) -> None:
+    def move_cars(self) -> None:
         for state, probs in self.policy.items():
             cost_of_moving_cars = 0
             for moved_cars, prob in probs.items():
