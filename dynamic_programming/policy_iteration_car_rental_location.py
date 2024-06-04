@@ -22,7 +22,9 @@ def get_initial_policy():
                 for cars in range(
                     cars_movable_to_location_2, -1 - cars_movable_to_location_1, -1
                 )
+                # if cars >= -5 and cars <= 5
             }
+    save_original_policy(policy)
     return policy
 
 
@@ -49,12 +51,22 @@ def improve_policy(env: car_rental_locations.CarsRentalLocations) -> bool:
     return current_policy != env.policy
 
 
-def save_policy(policy: dict) -> None:
+def save_original_policy(policy: dict) -> None:
     policy_to_save = {}
     for locations, actions_probs in policy.items():
         policy_to_save[f"({locations[0]}, {locations[1]})"] = actions_probs
+    with open("dynamic_programming/car_rental__original_policy.json", "w") as fp:
+        json.dump(policy_to_save, fp, indent=4)
+
+
+def save_policy(policy: dict) -> None:
+    policy_to_save = {}
+    for locations, actions_probs in policy.items():
+        policy_to_save[f"({locations[0]}, {locations[1]})"] = list(
+            actions_probs.keys()
+        )[list(actions_probs.values()).index(1)]
     with open("dynamic_programming/car_rental_policy.json", "w") as fp:
-        json.dump(policy_to_save, fp, sort_keys=True, indent=4)
+        json.dump(policy_to_save, fp, indent=4)
 
 
 def iterate_policy() -> None:
@@ -68,6 +80,7 @@ def iterate_policy() -> None:
         if not improve_policy(env):
             break
     save_policy(env.policy)
+    print(env.values)
     print(
         f"Policy iteration completed after {num_of_policy_iterations} policy iterations"
     )

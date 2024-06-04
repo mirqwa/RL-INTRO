@@ -30,17 +30,15 @@ class CarsRentalLocations:
         self, remaining_cars: int, return_distribution: dict
     ) -> dict:
         cars_at_the_end_of_the_day = {}
-        for i in range(0, 21 - remaining_cars):
-            cars_at_the_end_of_the_day[remaining_cars + i] = return_distribution[
-                remaining_cars + i
-            ]
+        for i in range(0, 10):
+            cars_at_the_end_of_the_day[remaining_cars + i] = return_distribution[i]
         return cars_at_the_end_of_the_day
 
     def get_location_states(
         self, available_cars: int, renting_distribution: dict, return_distribution: dict
     ) -> list:
         location_states = []
-        for i in range(0, available_cars + 1):
+        for i in range(0, 10):
             remaining_cars = available_cars - i
             cars_at_the_end_of_the_day = self.get_cars_at_the_end_of_the_day(
                 remaining_cars, return_distribution
@@ -48,9 +46,9 @@ class CarsRentalLocations:
             for end_day_cars, prob in cars_at_the_end_of_the_day.items():
                 location_states.append(
                     {
-                        "rented_cars": i,
+                        "rented_cars": min(i, remaining_cars),
                         "renting_distribution": renting_distribution[i],
-                        "end_day_cars": end_day_cars,
+                        "end_day_cars": min(end_day_cars, 20),
                         "return_distribution": prob,
                     }
                 )
@@ -62,7 +60,6 @@ class CarsRentalLocations:
         if probability == 0:
             return 0
         next_state = (state[0] - moved_cars, state[1] + moved_cars)
-        location_1_states = []
         location_1_states = self.get_location_states(
             next_state[0],
             self.location_1_properties["renting_distribution"],
@@ -113,19 +110,13 @@ class CarsRentalLocations:
                 self.values[state] = state_value
 
     def update_policy(self) -> None:
-        for state in self.policy.keys():
-            state_action_values = {
-                moved_cars: self.get_state_action_value(state, moved_cars, 1)
-                for moved_cars in self.policy[state].keys()
-            }
-            greedy_action = max(state_action_values, key=state_action_values.get)
-            # print("The greedy action for a state>>>", state, state_action_values, greedy_action)
-            greedy_actions = [
-                action
-                for action, action_value in state_action_values.items()
-                if action_value == state_action_values[greedy_action]
-            ]
-            for action in self.policy[state].keys():
-                self.policy[state][action] = (
-                    1 / len(greedy_actions) if action in greedy_actions else 0
-                )
+        for location_1_cars in range(21):
+            for location_2_cars in range(21):
+                state = (location_1_cars, location_2_cars)
+                state_action_values = {
+                    moved_cars: self.get_state_action_value(state, moved_cars, 1)
+                    for moved_cars in self.policy[state].keys()
+                }
+                greedy_action = max(state_action_values, key=state_action_values.get)
+                for action in self.policy[state].keys():
+                    self.policy[state][action] = 1 if action == greedy_action else 0
