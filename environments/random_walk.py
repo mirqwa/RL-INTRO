@@ -9,7 +9,7 @@ class RandomWalk:
         self.num_of_states = num_of_states
         self.terminal_states_rewards = {
             num_of_states: 1,
-            0: -1,
+            1: -1,
         }
         self.initial_state = initial_state
         self.current_state = initial_state
@@ -25,7 +25,7 @@ class RandomWalk:
         self.current_state = (
             min(self.current_state + steps, self.num_of_states)
             if steps > 0
-            else max(self.current_state + steps, 0)
+            else max(self.current_state + steps, 1)
         )
         if self.current_state in self.terminal_states_rewards.keys():
             self.reward = self.terminal_states_rewards[self.current_state]
@@ -45,10 +45,3 @@ class RandomWalk:
             episode_states.append(current_state)
             episode_rewards.append(reward)
         return episode_states, episode_rewards
-
-
-if __name__ == "__main__":
-    env = RandomWalk(1000, 500, 100)
-    states, rewards = env.generate_episode()
-    print(states)
-    print(rewards)
