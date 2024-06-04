@@ -11,6 +11,7 @@ class RandomWalk:
             num_of_states: 1,
             0: -1,
         }
+        self.initial_state = initial_state
         self.current_state = initial_state
         self.possible_steps = [i for i in range(-max_steps, max_steps + 1) if i != 0]
         self.steps_probabilities = [
@@ -29,3 +30,12 @@ class RandomWalk:
         if self.current_state in self.terminal_states_rewards.keys():
             self.reward = self.terminal_states_rewards[self.current_state]
             self.terminated = True
+    
+    def generate_episode(self):
+        self.current_state = self.initial_state
+        self.terminated = False
+        self.reward = 0
+        action_counts = 0
+        while self.terminated is False:
+            action_counts += 1
+            self.take_a_step()
