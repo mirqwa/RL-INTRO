@@ -4,74 +4,119 @@ from scipy.stats import poisson
 import numpy as np
 
 
-class CarRentalLocation:
-    def __init__(self, rental_lambda: float, returns_lambda: float) -> None:
-        self.number_of_cars = 20
-        self.rental_probability_dist = self.initialize_distribution(rental_lambda)
-        self.returns_probability_dist = self.initialize_distribution(returns_lambda)
-        self.rented_cars = 0
-
-    def initialize_distribution(self, poisson_lambda: int) -> dict:
-        return {i: poisson.pmf(i, poisson_lambda) for i in range(20)}
-
-    def get_number_of_cars(self, rental_probability_dist: dict) -> int:
-        rental_requests = np.random.choice(
-            list(rental_probability_dist.keys()),
-            1,
-            p=list(rental_probability_dist.values()),
-        )
-        return rental_requests[0]
-
-    def rent_cars(self) -> typing.Tuple[int]:
-        requested_cars = min(
-            self.number_of_cars, self.get_number_of_cars(self.rental_probability_dist)
-        )
-        self.rented_cars += requested_cars
-        prev_number_of_cars = self.number_of_cars
-        self.number_of_cars -= requested_cars
-        return prev_number_of_cars - 1, requested_cars * 10
-
-    def return_cars(self) -> None:
-        returned_cars = min(
-            self.rented_cars, self.get_number_of_cars(self.returns_probability_dist)
-        )
-        self.rented_cars -= returned_cars
-        self.number_of_cars += returned_cars
+np.random.seed(0)
 
 
-class CarRentalLocations:
+class CarsRentalLocations:
     def __init__(
         self, policy: dict, discounting_factor: typing.Optional[float] = 0.9
     ) -> None:
-        self.location_1 = CarRentalLocation(3, 3)
-        self.location_2 = CarRentalLocation(4, 2)
+        self.location_1_properties = {
+            "renting_distribution": self.initialize_distribution(3),
+            "return_distribution": self.initialize_distribution(3),
+        }
+        self.location_2_properties = {
+            "renting_distribution": self.initialize_distribution(4),
+            "return_distribution": self.initialize_distribution(2),
+        }
         self.policy = policy
         self.values = np.zeros((21, 21))
         self.discounting_factor = discounting_factor
 
-    def rent_cars(self) -> None:
-        location_1_state, location_1_state_value = self.location_1.rent_cars()
-        location_2_state, location_2_state_value = self.location_2.rent_cars()
-        self.values[(location_1_state, location_2_state)] = (
-            location_1_state_value + location_2_state_value
-        )
+    def initialize_distribution(self, poisson_lambda: int) -> dict:
+        return {i: poisson.pmf(i, poisson_lambda) for i in range(21)}
+
+    def get_cars_at_the_end_of_the_day(
+        self, remaining_cars: int, return_distribution: dict
+    ) -> dict:
+        cars_at_the_end_of_the_day = {}
+        for i in range(0, 21 - remaining_cars):
+            cars_at_the_end_of_the_day[remaining_cars + i] = return_distribution[
+                remaining_cars + i
+            ]
+        return cars_at_the_end_of_the_day
+
+    def get_location_states(
+        self, available_cars: int, renting_distribution: dict, return_distribution: dict
+    ) -> list:
+        location_states = []
+        for i in range(0, available_cars + 1):
+            remaining_cars = available_cars - i
+            cars_at_the_end_of_the_day = self.get_cars_at_the_end_of_the_day(
+                remaining_cars, return_distribution
+            )
+            for end_day_cars, prob in cars_at_the_end_of_the_day.items():
+                location_states.append(
+                    {
+                        "rented_cars": i,
+                        "renting_distribution": renting_distribution[i],
+                        "end_day_cars": end_day_cars,
+                        "return_distribution": prob,
+                    }
+                )
+        return location_states
 
     def get_state_action_value(
         self, state: tuple, moved_cars: int, probability: float
     ) -> float:
         next_state = (state[0] - moved_cars, state[1] + moved_cars)
-        return probability * (
-            abs(moved_cars) * -2 + self.discounting_factor * self.values[next_state]
+        location_1_states = []
+        location_1_states = self.get_location_states(
+            next_state[0],
+            self.location_1_properties["renting_distribution"],
+            self.location_1_properties["return_distribution"],
         )
-
-    def move_cars(self) -> None:
-        for state, probs in self.policy.items():
-            cost_of_moving_cars = 0
-            for moved_cars, prob in probs.items():
-                cost_of_moving_cars += self.get_state_action_value(
-                    state, moved_cars, prob
+        location_2_states = self.get_location_states(
+            next_state[1],
+            self.location_2_properties["renting_distribution"],
+            self.location_2_properties["return_distribution"],
+        )
+        action_value = 0
+        for location_1_state in location_1_states:
+            for location_2_state in location_2_states:
+                rental_income = (
+                    (
+                        location_1_state["renting_distribution"]
+                        * location_2_state["renting_distribution"]
+                    )
+                    * (
+                        location_1_state["rented_cars"]
+                        + location_2_state["rented_cars"]
+                    )
+                    * 10
                 )
-            self.values[state] += cost_of_moving_cars
+                rental_income = (
+                    location_1_state["rented_cars"] + location_2_state["rented_cars"]
+                ) * 10
+                action_value += probability * (
+                    abs(moved_cars) * -2
+                    + location_1_state["renting_distribution"]
+                    * location_2_state["renting_distribution"]
+                    * location_1_state["return_distribution"]
+                    * location_2_state["return_distribution"]
+                    * (
+                        rental_income
+                        + self.discounting_factor
+                        * self.values[
+                            (
+                                location_1_state["end_day_cars"],
+                                location_2_state["end_day_cars"],
+                            )
+                        ]
+                    )
+                )
+        return action_value
+
+    def evaluate_policy(self) -> None:
+        for location_1_cars in range(21):
+            for location_2_cars in range(21):
+                state = (location_1_cars, location_2_cars)
+                state_policy = self.policy[state]
+                state_value = 0
+                for moved_cars, prob in state_policy.items():
+                    action_value = self.get_state_action_value(state, moved_cars, prob)
+                    state_value += action_value
+                self.values[state] = state_value
 
     def update_policy(self) -> None:
         for state in self.policy.keys():

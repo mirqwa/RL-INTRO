@@ -1,4 +1,5 @@
 import copy
+import json
 import os
 import sys
 
@@ -25,31 +26,53 @@ def get_initial_policy():
     return policy
 
 
-def evaluate_policy(env: car_rental_locations.CarRentalLocations) -> None:
-    num_of_iterations = 1
-    theta = 0.1
+def evaluate_policy(env: car_rental_locations.CarsRentalLocations) -> None:
+    theta = 50
+    evaluation_iterations = 0
     while True:
-        current_avg_values = copy.deepcopy(env.values) / num_of_iterations
-        num_of_iterations += 1
-        env.rent_cars()
-        env.move_cars()
-        diffs = env.values / num_of_iterations - current_avg_values
+        theta /= 10
+        evaluation_iterations += 1
+        current_values = copy.deepcopy(env.values)
+        env.evaluate_policy()
+        diffs = env.values - current_values
         delta = np.abs(diffs).max()
+        print("The delta>>>>>>>>", delta)
         if delta < theta:
             break
     print(
-        f"Policy evaluation with in-place update completed after {num_of_iterations} steps"
+        f"Policy evaluation with in-place update completed after {evaluation_iterations} steps"
     )
+
+
+def improve_policy(env: car_rental_locations.CarsRentalLocations) -> bool:
+    current_policy = copy.deepcopy(env.policy)
+    env.update_policy()
+    print(list(env.policy[(10, 10)].values()))
+    return current_policy != env.policy
+
+
+def save_policy(policy: dict) -> None:
+    policy_to_save = {}
+    for locations, actions_probs in policy.items():
+        policy_to_save[f"({locations[0]}, {locations[1]})"] = actions_probs
+    with open("dynamic_programming/car_rental_policy.json", "w") as fp:
+        json.dump(policy_to_save, fp, sort_keys=True, indent=4)
 
 
 def iterate_policy() -> None:
     policy = get_initial_policy()
-    env = car_rental_locations.CarRentalLocations(policy)
+    env = car_rental_locations.CarsRentalLocations(policy)
+    num_of_policy_iterations = 0
     while True:
+        num_of_policy_iterations += 1
+        print(f"Policy iteration {num_of_policy_iterations}")
         evaluate_policy(env)
-        break
-    
-
+        if not improve_policy(env):
+            break
+    save_policy(env.policy)
+    print(
+        f"Policy iteration completed after {num_of_policy_iterations} policy iterations"
+    )
 
 
 if __name__ == "__main__":
