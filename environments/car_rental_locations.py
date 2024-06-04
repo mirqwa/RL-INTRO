@@ -59,6 +59,8 @@ class CarsRentalLocations:
     def get_state_action_value(
         self, state: tuple, moved_cars: int, probability: float
     ) -> float:
+        if probability == 0:
+            return 0
         next_state = (state[0] - moved_cars, state[1] + moved_cars)
         location_1_states = []
         location_1_states = self.get_location_states(
@@ -71,26 +73,15 @@ class CarsRentalLocations:
             self.location_2_properties["renting_distribution"],
             self.location_2_properties["return_distribution"],
         )
-        action_value = 0
+        cost_of_moving_cars = abs(moved_cars) * -2
+        rental_income_and_next_state_value = 0
         for location_1_state in location_1_states:
             for location_2_state in location_2_states:
                 rental_income = (
-                    (
-                        location_1_state["renting_distribution"]
-                        * location_2_state["renting_distribution"]
-                    )
-                    * (
-                        location_1_state["rented_cars"]
-                        + location_2_state["rented_cars"]
-                    )
-                    * 10
-                )
-                rental_income = (
                     location_1_state["rented_cars"] + location_2_state["rented_cars"]
                 ) * 10
-                action_value += probability * (
-                    abs(moved_cars) * -2
-                    + location_1_state["renting_distribution"]
+                rental_income_and_next_state_value += (
+                    location_1_state["renting_distribution"]
                     * location_2_state["renting_distribution"]
                     * location_1_state["return_distribution"]
                     * location_2_state["return_distribution"]
@@ -105,6 +96,9 @@ class CarsRentalLocations:
                         ]
                     )
                 )
+        action_value = probability * (
+            cost_of_moving_cars + rental_income_and_next_state_value
+        )
         return action_value
 
     def evaluate_policy(self) -> None:
@@ -125,6 +119,7 @@ class CarsRentalLocations:
                 for moved_cars in self.policy[state].keys()
             }
             greedy_action = max(state_action_values, key=state_action_values.get)
+            # print("The greedy action for a state>>>", state, state_action_values, greedy_action)
             greedy_actions = [
                 action
                 for action, action_value in state_action_values.items()

@@ -18,7 +18,7 @@ def get_initial_policy():
             cars_movable_to_location_2 = min(location_1_cars, 20 - location_2_cars)
             cars_movable_to_location_1 = min(location_2_cars, 20 - location_1_cars)
             policy[(location_1_cars, location_2_cars)] = {
-                cars: 0
+                cars: 1 if cars == 0 else 0
                 for cars in range(
                     cars_movable_to_location_2, -1 - cars_movable_to_location_1, -1
                 )
@@ -36,7 +36,6 @@ def evaluate_policy(env: car_rental_locations.CarsRentalLocations) -> None:
         env.evaluate_policy()
         diffs = env.values - current_values
         delta = np.abs(diffs).max()
-        print("The delta>>>>>>>>", delta)
         if delta < theta:
             break
     print(
@@ -47,7 +46,6 @@ def evaluate_policy(env: car_rental_locations.CarsRentalLocations) -> None:
 def improve_policy(env: car_rental_locations.CarsRentalLocations) -> bool:
     current_policy = copy.deepcopy(env.policy)
     env.update_policy()
-    print(list(env.policy[(10, 10)].values()))
     return current_policy != env.policy
 
 
