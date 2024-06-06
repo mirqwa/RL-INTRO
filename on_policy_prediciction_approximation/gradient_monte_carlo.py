@@ -5,6 +5,7 @@ import os
 import sys
 
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 import numpy as np
 import pandas as pd
 
@@ -34,10 +35,30 @@ def plot_values(
     true_values_x = list(true_values.keys())[1:-1]
     true_values_y = list(true_values.values())[1:-1]
     ax.plot(true_values_x, true_values_y, c="red", label="True Values")
-    ax.step([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000], approximate_values, c="blue")
+    ax.step(
+        [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+        approximate_values,
+        c="blue",
+        label="Approximate MC value",
+    )
 
     state_counts = [key for key, val in state_counts.items() for _ in range(val)]
-    ax2.hist(state_counts, bins=998, color="grey")
+    ax2.hist(state_counts, bins=998, color="grey", label="State distribution")
+
+    ax.set_title(
+        "Function approx by state agg on 1000-state random-walk, using gradient Monte Carlo",
+        fontsize=20,
+        fontstyle="italic",
+    )
+    ax.set_xlabel("State", fontsize=18)
+    ax.set_ylabel("Value scale", fontsize=18)
+    ax2.set_ylabel("Distribution scale", fontsize=18)
+
+    # add legend manually
+    handles, _ = ax.get_legend_handles_labels()
+    rectangle = Rectangle((0, 0), 1, 1, color="grey", label="State distribution")
+    handles.append(rectangle)
+    plt.legend(handles=handles, loc="upper left")
 
     plt.show()
 
