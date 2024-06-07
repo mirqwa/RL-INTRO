@@ -32,10 +32,13 @@ class RandomWalk:
             self.terminated = True
         return self.current_state, self.reward
     
-    def generate_episode(self) -> tuple:
+    def reset_state(self) -> None:
         self.current_state = self.initial_state
         self.terminated = False
         self.reward = 0
+    
+    def generate_episode(self) -> tuple:
+        self.reset_state()
         action_counts = 0
         episode_states = [self.initial_state]
         episode_rewards = []
