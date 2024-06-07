@@ -12,7 +12,7 @@ def get_approximate_value(state: int, weights: np.array) -> float:
 
 
 def plot_values(
-    true_values: dict, approximate_values: list, state_counts: dict
+    true_values: dict, approximate_values: list, state_counts: dict, title: str
 ) -> None:
     _, ax = plt.subplots()
     ax2 = ax.twinx()
@@ -30,7 +30,7 @@ def plot_values(
     ax2.hist(state_counts, bins=998, color="grey", label="State distribution")
 
     ax.set_title(
-        "Function approx by state agg on 1000-state random-walk, using gradient Monte Carlo",
+        title,
         fontsize=20,
         fontstyle="italic",
     )

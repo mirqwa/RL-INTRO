@@ -33,7 +33,12 @@ def evaluate_policy() -> None:
                 state, weights
             )
             weights += alpha * (target_value - approximate_value) * partial_derivatives
-    utils.plot_values(target_values, weights, state_counts)
+    utils.plot_values(
+        target_values,
+        weights,
+        state_counts,
+        "Function approx by state agg on 1000-state random-walk, using gradient Monte Carlo",
+    )
 
 
 if __name__ == "__main__":
