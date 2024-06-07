@@ -7,7 +7,6 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import numpy as np
-import pandas as pd
 
 current_directory = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.dirname(current_directory))
