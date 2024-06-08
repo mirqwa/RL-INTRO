@@ -17,7 +17,7 @@ def evaluate_policy() -> None:
     env = random_walk.RandomWalk(1000, 500, 100)
     state_values = {state: {"count": 0, "average": 0} for state in range(1, 1001)}
     discounting_factor = 1
-    for _ in range(1000000):
+    for _ in range(2000000):
         states, rewards = env.generate_episode()
         G = 0
         for i in range(len(states) - 2, -1, -1):
